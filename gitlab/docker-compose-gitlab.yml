@@ -1,0 +1,39 @@
+version: '3.3'
+services:
+  gitlab:
+    container_name: gitlab
+    image: gitlab/gitlab-ce:latest
+    restart: always
+    hostname: '8.219.81.194'
+    environment:
+      TZ: 'Asia/Shanghai'    
+    ports:
+      - "0.0.0.0:10081:10081"
+      - "0.0.0.0:10443:10443"
+      - "0.0.0.0:2222:22"
+    volumes:
+      - /data/gitlab/config:/etc/gitlab:rw
+      - /data/gitlab/logs:/var/log/gitlab:rw
+      - /data/gitlab/data:/var/opt/gitlab:rw
+    shm_size: '256m'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100M"
+        max-file: "3"
+    deploy:
+      resources:
+         limits:
+            cpus: "4.00"
+            memory: 8G
+         reservations:
+            memory: 2G
+    networks:
+      gitlab:
+        ipv4_address: 192.168.10.200
+networks:
+  gitlab:
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.10.0/24
