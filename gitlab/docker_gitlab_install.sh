@@ -37,14 +37,18 @@ EOF
 
 echo "正在部署...."
 docker-compose -f docker-compose-gitlab.yml up -d
-echo "gitlab容器创建完成，正在初始化....."
+echo "gitlab容器创建完成."
+
+echo -n "正在初始化."
 while :
 do
-  echo -e ".."
-  sleep 3
+  echo -n "."
+  sleep 2
   if [ -f /data/gitlab/data/nginx/conf/gitlab-http.conf ] ; then
-     echo "gitlab 容器初始化完成..."
-     break;
+    res=`docker exec gitlab curl -s -I http://localhost/|grep "HTTP/1.1 200"`
+    if [ -n $res ] ;then 
+       echo "gitlab 容器初始化完成..."
+    fi
   fi
 done
 
@@ -57,6 +61,7 @@ cd /data/gitlab/config
 cp gitlab.rb gitlab.rb.bak
 
 ##重新创建文件
+echo "正在创建gitlab.rb配置.."
 cat > gitlab.rb << 'EOF'
 external_url 'https://gitlab.myzk.xyz:10443'
 nginx['listen_port'] = 10443
@@ -91,32 +96,51 @@ gitlab_rails['smtp_authentication'] = "login"
 gitlab_rails['smtp_enable_starttls_auto'] = true
 gitlab_rails['smtp_tls'] = true
 EOF
+echo "gitlab.rb配置自动生成完成."
 
-echo "正在配置证书..."
+
+echo "正在配置ssl证书..."
 mkdir -p /data/gitlab/config/ssl
 cd /data/gitlab/config/ssl
-wget http://markabc.xyz/zk/gitlab.pem -O gitlab.pem
-wget http://markabc.xyz/zk/gitlab.key -O gitlab.key
+wget -q -O gitlab.pem http://markabc.xyz/zk/gitlab.pem
+wget -q -O gitlab.key http://markabc.xyz/zk/gitlab.key
+sleep 1 && echo "证书配置完成." 
 
-echo "重新配置gitlab中..."
-sleep 5
-docker exec -it gitlab gitlab-ctl reconfigure
+
+echo "执行重新配置gitlab操作..."
+docker exec -i gitlab gitlab-ctl reconfigure
 ##替换 nginx中的 http监听的端口,否则http和 https 监听同一个端口，存在冲突；
 sed -i 's/10443;/10081;/g' /data/gitlab/data/nginx/conf/gitlab-http.conf
+sleep 2 && ccho "重新配置完成."
 
-echo "正在停止gitlab服务...."
-docker exec -it gitlab gitlab-ctl stop
-echo "正在启动gitlab服务...."
-docker exec -it gitlab gitlab-ctl start
+echo "停止gitlab服务...." 
+docker exec -i gitlab gitlab-ctl stop
+sleep 1 && echo "gitlab服务已停止."
 
+echo "启动gitlab服务...."
+docker exec -i gitlab gitlab-ctl start
+sleep 1 && echo -n "gitlab服务启动中..."
+
+while :
+do
+  echo -n "."
+  sleep 1
+  res=`docker exec gitlab curl -s -I http://localhost:10081/|grep "HTTP/1.1 301"`
+  if [ -n $res ] ;then 
+    echo "gitlab服务启动完成."
+  fi
+done
+
+echo ""
+echo "-----------------------------------------------------------------------------------"
 echo "gitlab安装完成..."
 echo "访问地址: http://gitlab.myzk.xyz:10081/  或 https://gitlab.myzk.xyz:10443/"
 
-echo "管理员用户名：root初试密码如下，请尽快登录修改密码"
+echo "管理员用户名：root  系统初始密码如下:"
 docker exec -it gitlab grep 'Password:' /etc/gitlab/initial_root_password
+
+echo "-----------------------------------------------------------------------------------"
 
 echo "全部结束，祝你使用愉快...."
 echo ""
 echo ""
-
-
