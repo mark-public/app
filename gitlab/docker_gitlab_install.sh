@@ -118,10 +118,10 @@ echo "停止gitlab服务...."
 docker exec -i gitlab gitlab-ctl stop
 sleep 1 && echo "gitlab服务已停止."
 
+echo ""
 echo "启动gitlab服务...."
 docker exec -i gitlab gitlab-ctl start
-sleep 1 && echo -n "gitlab服务启动中."
-
+echo -n "gitlab服务启动中."
 while :
 do
   echo -n "."
@@ -138,13 +138,10 @@ echo ""
 echo "-----------------------------------------------------------------------------------"
 echo "gitlab安装完成..."
 echo "访问地址: http://gitlab.myzk.xyz:10081/  或 https://gitlab.myzk.xyz:10443/"
-
-echo "管理员用户名：root  系统初始密码如下:"
-docker exec -it gitlab grep 'Password:' /etc/gitlab/initial_root_password
-
+initPasswd=`docker exec -it gitlab grep 'Password:' /etc/gitlab/initial_root_password | cut -d ':' -f2-`
+echo "管理员用户名：root  系统初始密码为: $initPasswd"
 echo "-----------------------------------------------------------------------------------"
 
-echo "全部结束，祝你使用愉快...."
+echo "全部结束，祝你成功！！！"
 echo ""
 echo ""
-
