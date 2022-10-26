@@ -45,16 +45,17 @@ do
   echo -n "."
   sleep 2
   if [ -f /data/gitlab/data/nginx/conf/gitlab-http.conf ] ; then
-    res=`docker exec gitlab curl -s -I http://localhost/|grep "HTTP/1.1 200"`
-    if [ -n $res ] ;then 
+    res=`docker exec gitlab curl -s -I  http://localhost/users/sign_in|grep "HTTP/1.1 200"`
+    if [ -n "$res" ] ; then 
+       echo ""
        echo "gitlab 容器初始化完成..."
+       break;
     fi
   fi
 done
 
-echo "" 
-
-##-----修改gitlab.rb配置-----
+echo ""
+echo "创建gitlab.rb配置文件..."
 ##进入gitlab配置目录
 cd /data/gitlab/config
 ##备份原配置
@@ -111,7 +112,7 @@ echo "执行重新配置gitlab操作..."
 docker exec -i gitlab gitlab-ctl reconfigure
 ##替换 nginx中的 http监听的端口,否则http和 https 监听同一个端口，存在冲突；
 sed -i 's/10443;/10081;/g' /data/gitlab/data/nginx/conf/gitlab-http.conf
-sleep 2 && ccho "重新配置完成."
+sleep 2 && echo "重新配置完成."
 
 echo "停止gitlab服务...." 
 docker exec -i gitlab gitlab-ctl stop
@@ -119,15 +120,17 @@ sleep 1 && echo "gitlab服务已停止."
 
 echo "启动gitlab服务...."
 docker exec -i gitlab gitlab-ctl start
-sleep 1 && echo -n "gitlab服务启动中..."
+sleep 1 && echo -n "gitlab服务启动中."
 
 while :
 do
   echo -n "."
   sleep 1
-  res=`docker exec gitlab curl -s -I http://localhost:10081/|grep "HTTP/1.1 301"`
-  if [ -n $res ] ;then 
+  res=`docker exec gitlab curl -s -I http://localhost:10081/users/sign_in|grep "HTTP/1.1 301"`
+  if [ -n "$res" ] ;then 
+    echo ""
     echo "gitlab服务启动完成."
+    break;
   fi
 done
 
@@ -144,3 +147,4 @@ echo "--------------------------------------------------------------------------
 echo "全部结束，祝你使用愉快...."
 echo ""
 echo ""
+
