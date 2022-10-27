@@ -1,6 +1,7 @@
 #!/bin/bash
-[ ! -d /home/gitlab ] && mkdir /home/gitlab
-cd /home/gitlab
+WORK_DIR /home/gitlab
+[ ! -d $WORK_DIR ] && mkdir -p $WORK_DIR
+cd $WORK_DIR
 
 cat > docker-compose-gitlab.yml << 'EOF'
 version: '3.6'
