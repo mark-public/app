@@ -1,5 +1,5 @@
 #!/bin/bash
-WORK_DIR /home/gitlab
+WORK_DIR=/home/gitlab
 [ ! -d $WORK_DIR ] && mkdir -p $WORK_DIR
 cd $WORK_DIR
 
