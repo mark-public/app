@@ -1,0 +1,53 @@
+server:
+  port: 9080
+  servlet:
+    context-path: /
+    session:
+      tracking-modes: cookie
+      cookie:
+        http-only: true
+        path: /
+  tomcat:
+    uri-encoding: UTF-8
+    accept-count: 10000
+    connection-timeout: 120000
+    max-connections: 8192
+    max-http-form-post-size: 10MB
+    accesslog:
+      enabled: true
+      buffered: false
+      directory: /logs
+      pattern: '%h %l %u %t %r %s %b %Dms'
+      prefix: access
+      suffix: .log
+      file-date-format: .yyyy-MM-dd
+      rotate: true
+      rename-on-rotate: true
+      encoding: UTF-8
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,image/jpeg,image/png,text/css
+    min-response-size: 2KB
+    excluded-user-agents:
+
+  undertow:
+    url-charset: UTF-8     #字符编码
+    max-http-post-size: 0  #HTTP POST请求最大的大小
+    max-headers: 200
+    max-parameters: 1000
+    threads:
+      #设置IO线程数,默认设置每个CPU核心一个线程，不可设置过大，否则启动项目会报错：打开文件数过多
+      io: 16
+      #阻塞任务线程池, 当执行类似servlet请求阻塞操作, undertow会从这个线程池中取得线程,它的值设置取决于系统的负载, 官方默认配置的是 CPU核数*8
+      worker: 256
+    #每块buffer的空间大小,越小的空间被利用越充分，不要设置太大，以免影响其他应用，合适即可
+    buffer-size: 1024
+    #是否分配的直接内存(NIO直接分配的堆外内存)
+    direct-buffers: true
+    accesslog:
+      dir: /opt/wallet-public-api/logs
+      enabled: true
+      pattern: '%h %l %u %t %r %s %b %Dms'
+      prefix: access.
+      suffix: log
+      rotate: true
