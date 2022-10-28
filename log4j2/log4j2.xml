@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--日志级别以及优先级排序: OFF > FATAL > ERROR > WARN > INFO > DEBUG > TRACE > ALL -->
+<!--Configuration后面的status，这个用于设置log4j2自身内部的信息输出，可以不设置，当设置成trace时，你会看到log4j2内部各种详细输出-->
+<!--monitorInterval：Log4j能够自动检测修改配置 文件和重新配置本身，设置间隔秒数-->
+<configuration status="WARN" monitorInterval="60">
+    <properties>
+        <property name="LOG_HOME">logs</property>
+        <property name="FILE_NAME">app</property>
+        <property name="ERROR_FILE_NAME">app-error</property>
+        <property name="MONITOR_LOG_FILE_NAME">monitor</property>
+        <property name="PATTERN">%-5p %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{CLIENT_IP}] [%X{TRACE_ID}] [%logger{1.}-%M:%L] - %m%xEx{10} %n</property>
+    </properties>
+    <appenders>
+        <Console name="CONSOLE" target="SYSTEM_OUT">
+            <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="${PATTERN}"/>
+        </Console>
+
+        <RollingFile name="ROLLING_FILE" fileName="${LOG_HOME}/${FILE_NAME}.log"
+                     filePattern="${LOG_HOME}/${FILE_NAME}-%i.log">
+            <PatternLayout pattern="${PATTERN}"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="100MB"/>
+            </Policies>
+            <!-- DefaultRolloverStrategy属性如不设置，则默认为最多同一文件夹下7个文件，这里设置了1000 -->
+            <DefaultRolloverStrategy max="7" />
+        </RollingFile>
+
+        <!-- error级别日志 -->
+        <RollingFile name="ROLLING_FILE_ERROR" fileName="${LOG_HOME}/${ERROR_FILE_NAME}.log"
+                     filePattern="${LOG_HOME}/${ERROR_FILE_NAME}-%i.log">
+            <PatternLayout pattern="${PATTERN}"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="100MB"/>
+            </Policies>
+            <!-- DefaultRolloverStrategy属性如不设置，则默认为最多同一文件夹下7个文件，这里设置了1000 -->
+            <DefaultRolloverStrategy max="7"/>
+        </RollingFile>
+    
+
+        <!-- 监控日志 -->
+        <RollingFile name="MONITOR_FILE_LOG" fileName="${LOG_HOME}/${MONITOR_LOG_FILE_NAME}.log"
+                     filePattern="${LOG_HOME}/${MONITOR_LOG_FILE_NAME}-%i.log" append="false">
+            <PatternLayout pattern="${PATTERN}"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="100MB"/>
+            </Policies>
+            <!-- DefaultRolloverStrategy属性如不设置，则默认为最多同一文件夹下7个文件，这里设置了1000 -->
+            <DefaultRolloverStrategy max="7" />
+      </RollingFile>
+    </appenders>
+    <Loggers>
+        <Root level="DEBUG">
+            <!-- 输出到控制台 -->
+            <!-- <AppenderRef ref="CONSOLE"/> -->
+            <AppenderRef ref="ROLLING_FILE" />
+            <AppenderRef ref="ROLLING_FILE_ERROR" level="ERROR"/>
+        </Root>
+
+        <!--将logger中的 additivity 属性配置为 false，则这个logger不会将日志流反馈到root中。-->
+        <Logger name="monitorLog" level="DEBUG" additivity="false">
+            <AppenderRef ref="MONITOR_FILE_LOG" />
+        </Logger>
+
+        <Logger name="org" level="INFO"/>
+        <logger name="com" level="INFO" />
+        <Logger name="io.lettuce" level="INFO" />
+        <Logger name="io.undertow" level="INFO" />
+        <Logger name="com.mark" level="DEBUG" />
+
+    </Loggers>
+</configuration>
